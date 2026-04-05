@@ -1,5 +1,6 @@
 package com.codexhotel.services;
 
+import com.codexhotel.data.enums.Role;
 import com.codexhotel.data.models.Booking;
 import com.codexhotel.data.models.Payment;
 import com.codexhotel.data.models.User;
@@ -22,22 +23,24 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final BookingRepository bookingRepository;
-    private final NotificationManager notificationManager;
     private final UserRepository userRepository;
+    private final NotificationManager notificationManager;
 
     public PaymentResponse createPayment(PaymentRequest request) {
         validatePaymentRequest(request);
-
-        Payment payment = PaymentMapper.toPayment(request);
-        payment.setSuccessful(true);
-
-        Payment savedPayment = paymentRepository.save(payment);
 
         Booking booking = bookingRepository.findById(request.getBookingId())
                 .orElseThrow(() -> new BookingNotFoundException("Booking not found"));
 
         User user = userRepository.findById(booking.getUserId())
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        Payment payment = PaymentMapper.toPayment(request);
+        payment.setSuccessful(true);
+        payment.setUserId(user.getId());
+
+        Payment savedPayment = paymentRepository.save(payment);
+
 
         notificationManager.notifyByEmailAndSms(user.getEmail(), user.getPhoneNumber(),
                 "Your payment of N" + payment.getAmount() +
@@ -47,28 +50,59 @@ public class PaymentService {
         return PaymentMapper.toResponse(savedPayment);
     }
 
-    public PaymentResponse getPaymentById(String id) {
-        Payment payment = paymentRepository.findById(id)
+    public PaymentResponse getPaymentById(String paymentId, String requesterId) {
+        Payment payment = paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new PaymentNotFoundException("Payment not found"));
+
+        User requester = userRepository.findById(requesterId)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        if (!requester.getRole().equals(Role.ADMIN) && !payment.getUserId().equals(requesterId)) {
+            throw new AdminAccessRequiredException("You are not allowed to access this payment");
+        }
 
         return PaymentMapper.toResponse(payment);
     }
 
-    public List<PaymentResponse> getPaymentsByBookingId(String bookingId) {
+    public List<PaymentResponse> getPaymentsByBookingId(String bookingId, String requesterId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new BookingNotFoundException("Booking not found"));
+
+        User requester = userRepository.findById(requesterId)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        if (!requester.getRole().equals(Role.ADMIN) && !booking.getUserId().equals(requesterId)) {
+            throw new AdminAccessRequiredException("You are not allowed to access these payments");
+        }
+
         return paymentRepository.findByBookingId(bookingId)
                 .stream()
                 .map(PaymentMapper::toResponse)
                 .toList();
     }
 
-    public List<PaymentResponse> getPaymentsByStatus(boolean successful) {
+    public List<PaymentResponse> getPaymentsByStatus(boolean successful, String requesterId) {
+        User requester = userRepository.findById(requesterId)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        if (!requester.getRole().equals(Role.ADMIN)) {
+            throw new AdminAccessRequiredException("Only admins can view payments by status");
+        }
+
         return paymentRepository.findBySuccessful(successful)
                 .stream()
                 .map(PaymentMapper::toResponse)
                 .toList();
     }
 
-    public PaymentResponse markPaymentAsSuccessful(String paymentId) {
+    public PaymentResponse markPaymentAsSuccessful(String paymentId, String requesterId) {
+        User requester = userRepository.findById(requesterId)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        if (!requester.getRole().equals(Role.ADMIN)) {
+            throw new AdminAccessRequiredException("Only admins can mark payments as successful");
+        }
+
         Payment payment = paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new PaymentNotFoundException("Payment not found"));
 
@@ -78,10 +112,17 @@ public class PaymentService {
         return PaymentMapper.toResponse(updatedPayment);
     }
 
-    public void deletePaymentById(String paymentId) {
+    public void deletePaymentById(String paymentId, String requesterId) {
+        User requester = userRepository.findById(requesterId)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        if (!requester.getRole().equals(Role.ADMIN)) {
+            throw new AdminAccessRequiredException("Only admins can delete payments");
+        }
         if (!paymentRepository.existsById(paymentId)) {
             throw new PaymentNotFoundException("Payment not found");
         }
+
         paymentRepository.deleteById(paymentId);
     }
 

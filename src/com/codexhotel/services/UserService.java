@@ -29,11 +29,12 @@ public class UserService {
         }
 
         User user = UserMapper.toUser(request);
-        user.setRole(Role.GUEST);
+        user.setRole(request.getRole() != null ? request.getRole() : Role.GUEST);
         user.setCreatedAt(LocalDate.now());
 
         User savedUser = userRepository.save(user);
-        notificationManager.notifyByEmailAndSms(savedUser.getEmail(), savedUser.getPhoneNumber(), "Your account has been created");
+
+        notificationManager.notifyByEmailAndSms(savedUser.getEmail(), savedUser.getPhoneNumber(), "Your account has been created with role: " + savedUser.getRole());
 
         return UserMapper.toResponse(savedUser);
     }
@@ -41,51 +42,86 @@ public class UserService {
     public UserResponse getUserById(String id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
+
         return UserMapper.toResponse(user);
     }
 
     public UserResponse getUserByEmail(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
+
         return UserMapper.toResponse(user);
     }
 
-    public List<UserResponse> getAllUsers() {
+    public List<UserResponse> getAllUsers(String adminUserId) {
+        checkAdmin(adminUserId);
+
         return userRepository.findAll()
                 .stream()
                 .map(UserMapper::toResponse)
                 .toList();
     }
 
-    public UserResponse updateUser(String id, CreateUserRequest request) {
+    public UserResponse updateUser(String userIdToUpdate, CreateUserRequest request, String callerUserId) {
         validateUserRequest(request);
 
-        User existingUser = userRepository.findById(id)
+        User caller = userRepository.findById(callerUserId)
+                .orElseThrow(() -> new UserNotFoundException("Caller not found"));
+
+        User userToUpdate = userRepository.findById(userIdToUpdate)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
-        String newEmail = request.getEmail().trim();
+        if (caller.getRole() != Role.ADMIN && !caller.getId().equals(userToUpdate.getId())) {
+            throw new UnauthorizedActionException("You cannot update other users");
+        }
 
-        if (!existingUser.getEmail().equals(newEmail) && userRepository.existsByEmail(newEmail)) {
+        String newEmail = request.getEmail().trim();
+        if (!userToUpdate.getEmail().equals(newEmail) && userRepository.existsByEmail(newEmail)) {
             throw new EmailAlreadyExistsException("Email already exists");
         }
 
-        existingUser.setName(request.getName());
-        existingUser.setEmail(request.getEmail());
-        existingUser.setPhoneNumber(request.getPhoneNumber());
+        userToUpdate.setName(request.getName());
+        userToUpdate.setEmail(request.getEmail());
+        userToUpdate.setPhoneNumber(request.getPhoneNumber());
 
-        User savedUser = userRepository.save(existingUser);
+        if (caller.getRole() == Role.ADMIN && request.getRole() != null) {
+            userToUpdate.setRole(request.getRole());
+        }
+
+        User savedUser = userRepository.save(userToUpdate);
+
         notificationManager.notifyByEmailAndSms(savedUser.getEmail(), savedUser.getPhoneNumber(), "Your profile has been updated successfully");
 
         return UserMapper.toResponse(savedUser);
     }
 
-    public void deleteUser(String id) {
-        User user = userRepository.findById(id)
+    public void deleteUser(String userIdToDelete, String callerUserId) {
+        User caller = userRepository.findById(callerUserId)
+                .orElseThrow(() -> new CallerNotFoundException("Caller not found"));
+
+        User userToDelete = userRepository.findById(userIdToDelete)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
-        userRepository.deleteById(id);
+        if (caller.getRole() != Role.ADMIN && !caller.getId().equals(userToDelete.getId())) {
+            throw new UnauthorizedActionException("You cannot delete other users");
+        }
 
-        notificationManager.notifyByEmailAndSms(user.getEmail(), user.getPhoneNumber(), "Your account has been deleted successfully");
+        userRepository.deleteById(userIdToDelete);
+
+        notificationManager.notifyByEmailAndSms(userToDelete.getEmail(), userToDelete.getPhoneNumber(), "Your account has been deleted successfully");
+    }
+
+    public boolean isAdmin(String userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        return user.getRole() == Role.ADMIN;
+    }
+
+    private void checkAdmin(String userId) {
+        if (!isAdmin(userId)) {
+            throw new UnauthorizedActionException("Admin privileges required");
+        }
     }
 
     private void validateUserRequest(CreateUserRequest request) {

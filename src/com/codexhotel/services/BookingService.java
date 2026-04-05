@@ -1,6 +1,7 @@
 package com.codexhotel.services;
 
 import com.codexhotel.data.enums.BookingStatus;
+import com.codexhotel.data.enums.Role;
 import com.codexhotel.data.enums.RoomStatus;
 import com.codexhotel.data.models.Booking;
 import com.codexhotel.data.models.Room;
@@ -33,6 +34,9 @@ public class BookingService {
     public BookingResponse createBooking(CreateBookingRequest request) {
         validateBookingRequest(request);
 
+        User user = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+
         Room room = roomRepository.findById(request.getRoomId())
                 .orElseThrow(() -> new RoomNotFoundException("Room not found"));
 
@@ -43,10 +47,7 @@ public class BookingService {
         validateRoomAvailability(request.getRoomId(), request.getCheckInDate(), request.getCheckOutDate());
 
         Booking booking = BookingMapper.toBooking(request);
-
-        double totalPrice = calculateTotalPrice(room, request.getCheckInDate(), request.getCheckOutDate());
-
-        booking.setTotalPrice(totalPrice);
+        booking.setTotalPrice(calculateTotalPrice(room, request.getCheckInDate(), request.getCheckOutDate()));
         booking.setStatus(BookingStatus.CONFIRMED);
 
         Booking savedBooking = bookingRepository.save(booking);
@@ -54,20 +55,25 @@ public class BookingService {
         room.setStatus(RoomStatus.OCCUPIED);
         roomRepository.save(room);
 
-        User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         notificationManager.notifyByEmailAndSms(user.getEmail(), user.getPhoneNumber(),
                 "Your booking for room " + room.getRoomNumber() +
-                " from " + booking.getCheckInDate() + " to " + booking.getCheckOutDate() +
-                " has been CONFIRMED. Total price: N" + totalPrice);
+                        " from " + booking.getCheckInDate() + " to " + booking.getCheckOutDate() +
+                        " has been CONFIRMED. Total price: N" + booking.getTotalPrice());
 
         return BookingMapper.toResponse(savedBooking);
     }
 
-    public BookingResponse cancelBooking(CancelBookingRequest request) {
+    public BookingResponse cancelBooking(CancelBookingRequest request, String requesterId) {
         Booking booking = bookingRepository.findById(request.getBookingId())
                 .orElseThrow(() -> new BookingNotFoundException("Booking not found"));
+
+        User requester = userRepository.findById(requesterId)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        if (!requester.getRole().equals(Role.ADMIN) && !booking.getUserId().equals(requesterId)) {
+            throw new AdminAccessRequiredException("You are not allowed to cancel this booking");
+        }
 
         booking.setStatus(BookingStatus.CANCELLED);
 
@@ -84,34 +90,62 @@ public class BookingService {
 
         notificationManager.notifyByEmailAndSms(user.getEmail(), user.getPhoneNumber(),
                 "Your booking for room " + room.getRoomNumber() +
-                " from " + booking.getCheckInDate() + " to " + booking.getCheckOutDate() +
-                " has been CANCELLED.");
+                        " from " + booking.getCheckInDate() + " to " + booking.getCheckOutDate() +
+                        " has been CANCELLED.");
 
         return BookingMapper.toResponse(updatedBooking);
     }
 
-    public BookingResponse getBookingById(String id) {
-        Booking booking = bookingRepository.findById(id)
+    public BookingResponse getBookingById(String bookingId, String requesterId) {
+        Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new BookingNotFoundException("Booking not found"));
+
+        User requester = userRepository.findById(requesterId)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        if (!requester.getRole().equals(Role.ADMIN) && !booking.getUserId().equals(requesterId)) {
+            throw new AdminAccessRequiredException("You are not allowed to access this booking");
+        }
 
         return BookingMapper.toResponse(booking);
     }
 
-    public List<BookingResponse> getBookingsByUser(String userId) {
+    public List<BookingResponse> getBookingsByUser(String userId, String requesterId) {
+        User requester = userRepository.findById(requesterId)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        if (!requester.getRole().equals(Role.ADMIN) && !requester.getId().equals(userId)) {
+            throw new AdminAccessRequiredException("You are not allowed to access these bookings");
+        }
+
         return bookingRepository.findByUserId(userId)
                 .stream()
                 .map(BookingMapper::toResponse)
                 .toList();
     }
 
-    public List<BookingResponse> getBookingsByRoom(String roomId) {
+    public List<BookingResponse> getBookingsByRoom(String roomId, String requesterId) {
+        User requester = userRepository.findById(requesterId)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        if (!requester.getRole().equals(Role.ADMIN)) {
+            throw new AdminAccessRequiredException("Only admins can view bookings by room");
+        }
+
         return bookingRepository.findByRoomId(roomId)
                 .stream()
                 .map(BookingMapper::toResponse)
                 .toList();
     }
 
-    public List<BookingResponse> getBookingsByStatus(BookingStatus status) {
+    public List<BookingResponse> getBookingsByStatus(BookingStatus status, String requesterId) {
+        User requester = userRepository.findById(requesterId)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        if (!requester.getRole().equals(Role.ADMIN)) {
+            throw new AdminAccessRequiredException("Only admins can view bookings by status");
+        }
+
         return bookingRepository.findByStatus(status)
                 .stream()
                 .map(BookingMapper::toResponse)
@@ -126,7 +160,7 @@ public class BookingService {
             throw new RoomIdCannotBeEmptyException("Room ID cannot be empty");
         }
         if (request.getCheckInDate() == null || request.getCheckOutDate() == null) {
-            throw new DatesCannotBeEmptyException("Dates cannot be null");
+            throw new DatesCannotBeEmptyException("Dates cannot be empty");
         }
         if (!request.getCheckOutDate().isAfter(request.getCheckInDate())) {
             throw new CheckOutAfterCheckInException("Check-out must be after check-in");
@@ -149,7 +183,6 @@ public class BookingService {
 
     private double calculateTotalPrice(Room room, LocalDate checkIn, LocalDate checkOut) {
         double total = 0;
-
         LocalDate currentDate = checkIn;
 
         while (currentDate.isBefore(checkOut)) {

@@ -1,8 +1,11 @@
 package com.codexhotel.services;
 
+import com.codexhotel.data.enums.Role;
 import com.codexhotel.data.enums.RoomStatus;
 import com.codexhotel.data.models.Room;
+import com.codexhotel.data.models.User;
 import com.codexhotel.data.repositories.RoomRepository;
+import com.codexhotel.data.repositories.UserRepository;
 import com.codexhotel.dtos.requests.CreateRoomRequest;
 import com.codexhotel.dtos.requests.UpdateRoomStatusRequest;
 import com.codexhotel.dtos.responses.RoomResponse;
@@ -18,8 +21,10 @@ import java.util.List;
 public class RoomService {
 
     private final RoomRepository roomRepository;
+    private final UserRepository userRepository;
 
-    public RoomResponse createRoom(CreateRoomRequest request) {
+    public RoomResponse createRoom(CreateRoomRequest request, String callerUserId) {
+        checkAdmin(callerUserId);
         validateRoomRequest(request);
 
         if (roomRepository.findByRoomNumber(request.getRoomNumber()).isPresent()) {
@@ -60,7 +65,9 @@ public class RoomService {
                 .toList();
     }
 
-    public RoomResponse updateRoomStatus(UpdateRoomStatusRequest request) {
+    public RoomResponse updateRoomStatus(UpdateRoomStatusRequest request, String callerUserId) {
+        checkAdmin(callerUserId);
+
         Room room = roomRepository.findById(request.getRoomId())
                 .orElseThrow(() -> new RoomNotFoundException("Room not found"));
 
@@ -70,7 +77,9 @@ public class RoomService {
         return RoomMapper.toResponse(savedRoom);
     }
 
-    public void deleteRoom(String id) {
+    public void deleteRoom(String id, String callerUserId) {
+        checkAdmin(callerUserId);
+
         if (!roomRepository.existsById(id)) {
             throw new RoomNotFoundException("Room not found");
         }
@@ -82,10 +91,19 @@ public class RoomService {
             throw new InvalidRoomRequestException("Room number must be greater than 0");
         }
         if (request.getBasePrice() < 0) {
-            throw new InvalidBasePriceException("Base price cannot be less then 0");
+            throw new InvalidBasePriceException("Base price cannot be less than 0");
         }
         if (request.getRoomType() == null) {
             throw new RoomTypeCannotBeEmptyException("Room type cannot be empty");
+        }
+    }
+
+    private void checkAdmin(String userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        if (user.getRole() != Role.ADMIN) {
+            throw new UnauthorizedActionException("Admin privileges required");
         }
     }
 }

@@ -13,6 +13,7 @@ public class Payment {
 
     @Id
     private String id;
+    private String userId;
     private String bookingId;
     private double amount;
     private LocalDate paymentDate;

@@ -4,6 +4,9 @@ import com.codexhotel.data.enums.RoomType;
 import com.codexhotel.data.enums.Season;
 import com.codexhotel.data.models.Pricing;
 import com.codexhotel.data.repositories.PricingRepository;
+import com.codexhotel.exceptions.DatesCannotBeEmptyException;
+import com.codexhotel.exceptions.InvalidBasePriceException;
+import com.codexhotel.exceptions.InvalidRoomRequestException;
 import com.codexhotel.exceptions.PricingNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,11 +21,15 @@ public class PricingService {
     private final PricingRepository pricingRepository;
 
     public double calculatePrice(RoomType roomType, double basePrice, LocalDate date) {
+        if (roomType == null) throw new InvalidRoomRequestException("Room type cannot be empty");
+        if (date == null) throw new DatesCannotBeEmptyException("Date cannot be empty");
+        if (basePrice < 0) throw new InvalidBasePriceException("Base price cannot be negative");
+
         Season season = determineSeason(date);
 
         Pricing pricing = pricingRepository
                 .findByRoomTypeAndSeason(roomType, season)
-                .orElseThrow(() -> new PricingNotFoundException("Pricing not found"));
+                .orElseThrow(() -> new PricingNotFoundException("Pricing not found for room type: " + roomType + " and season: " + season));
 
         return basePrice * pricing.getMultiplier();
     }
@@ -41,8 +48,9 @@ public class PricingService {
     }
 
     private boolean isFestivePeriod(LocalDate date) {
-        int month = date.getMonthValue();
+        if (date == null) throw new DatesCannotBeEmptyException("Date cannot be empty");
 
+        int month = date.getMonthValue();
         return month == 12;
     }
 }
