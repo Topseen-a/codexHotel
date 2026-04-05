@@ -1,6 +1,5 @@
 package com.codexhotel.data.repositories;
 
-import com.codexhotel.data.enums.RoomStatus;
 import com.codexhotel.data.models.Payment;
 import org.springframework.data.mongodb.repository.MongoRepository;
 

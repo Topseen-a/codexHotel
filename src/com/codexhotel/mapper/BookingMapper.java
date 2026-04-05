@@ -1,5 +1,6 @@
 package com.codexhotel.mapper;
 
+import com.codexhotel.data.enums.BookingStatus;
 import com.codexhotel.data.models.Booking;
 import com.codexhotel.dtos.requests.CreateBookingRequest;
 import com.codexhotel.dtos.responses.BookingResponse;
@@ -15,7 +16,7 @@ public class BookingMapper {
         booking.setCheckInDate(request.getCheckInDate());
         booking.setCheckOutDate(request.getCheckOutDate());
         booking.setCreatedAt(LocalDate.now());
-        booking.setStatus(null);
+        booking.setStatus(BookingStatus.CONFIRMED);
         booking.setTotalPrice(0.0);
 
         return booking;
