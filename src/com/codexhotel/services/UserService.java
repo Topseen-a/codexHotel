@@ -7,6 +7,7 @@ import com.codexhotel.dtos.requests.CreateUserRequest;
 import com.codexhotel.dtos.responses.UserResponse;
 import com.codexhotel.exceptions.*;
 import com.codexhotel.mapper.UserMapper;
+import com.codexhotel.notifications.NotificationManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +19,7 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final NotificationManager notificationManager;
 
     public UserResponse createUser(CreateUserRequest request) {
         validateUserRequest(request);
@@ -31,6 +33,8 @@ public class UserService {
         user.setCreatedAt(LocalDate.now());
 
         User savedUser = userRepository.save(user);
+        notificationManager.notifyByEmailAndSms(savedUser.getEmail(), savedUser.getPhoneNumber(), "Your account has been created");
+
         return UserMapper.toResponse(savedUser);
     }
 
@@ -70,14 +74,18 @@ public class UserService {
         existingUser.setPhoneNumber(request.getPhoneNumber());
 
         User savedUser = userRepository.save(existingUser);
+        notificationManager.notifyByEmailAndSms(savedUser.getEmail(), savedUser.getPhoneNumber(), "Your profile has been updated successfully");
+
         return UserMapper.toResponse(savedUser);
     }
 
     public void deleteUser(String id) {
-        if (!userRepository.existsById(id)) {
-            throw new UserNotFoundException("User not found");
-        }
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+
         userRepository.deleteById(id);
+
+        notificationManager.notifyByEmailAndSms(user.getEmail(), user.getPhoneNumber(), "Your account has been deleted successfully");
     }
 
     private void validateUserRequest(CreateUserRequest request) {

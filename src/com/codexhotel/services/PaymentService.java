@@ -1,14 +1,16 @@
 package com.codexhotel.services;
 
+import com.codexhotel.data.models.Booking;
 import com.codexhotel.data.models.Payment;
+import com.codexhotel.data.models.User;
+import com.codexhotel.data.repositories.BookingRepository;
 import com.codexhotel.data.repositories.PaymentRepository;
+import com.codexhotel.data.repositories.UserRepository;
 import com.codexhotel.dtos.requests.PaymentRequest;
 import com.codexhotel.dtos.responses.PaymentResponse;
-import com.codexhotel.exceptions.AmountCannotBeLessThanZeroException;
-import com.codexhotel.exceptions.BookingIdCannotBeEmptyException;
-import com.codexhotel.exceptions.PaymentMethodCannotBeEmptyException;
-import com.codexhotel.exceptions.PaymentNotFoundException;
+import com.codexhotel.exceptions.*;
 import com.codexhotel.mapper.PaymentMapper;
+import com.codexhotel.notifications.NotificationManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -19,12 +21,28 @@ import java.util.List;
 public class PaymentService {
 
     private final PaymentRepository paymentRepository;
+    private final BookingRepository bookingRepository;
+    private final NotificationManager notificationManager;
+    private final UserRepository userRepository;
 
     public PaymentResponse createPayment(PaymentRequest request) {
         validatePaymentRequest(request);
 
         Payment payment = PaymentMapper.toPayment(request);
+        payment.setSuccessful(true);
+
         Payment savedPayment = paymentRepository.save(payment);
+
+        Booking booking = bookingRepository.findById(request.getBookingId())
+                .orElseThrow(() -> new BookingNotFoundException("Booking not found"));
+
+        User user = userRepository.findById(booking.getUserId())
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        notificationManager.notifyByEmailAndSms(user.getEmail(), user.getPhoneNumber(),
+                "Your payment of N" + payment.getAmount() +
+                        " for booking " + booking.getId() +
+                        " has been received successfully.");
 
         return PaymentMapper.toResponse(savedPayment);
     }

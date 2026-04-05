@@ -4,13 +4,16 @@ import com.codexhotel.data.enums.BookingStatus;
 import com.codexhotel.data.enums.RoomStatus;
 import com.codexhotel.data.models.Booking;
 import com.codexhotel.data.models.Room;
+import com.codexhotel.data.models.User;
 import com.codexhotel.data.repositories.BookingRepository;
 import com.codexhotel.data.repositories.RoomRepository;
+import com.codexhotel.data.repositories.UserRepository;
 import com.codexhotel.dtos.requests.CancelBookingRequest;
 import com.codexhotel.dtos.requests.CreateBookingRequest;
 import com.codexhotel.dtos.responses.BookingResponse;
 import com.codexhotel.exceptions.*;
 import com.codexhotel.mapper.BookingMapper;
+import com.codexhotel.notifications.NotificationManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +26,9 @@ public class BookingService {
 
     private final BookingRepository bookingRepository;
     private final RoomRepository roomRepository;
+    private final PricingService pricingService;
+    private final UserRepository userRepository;
+    private final NotificationManager notificationManager;
 
     public BookingResponse createBooking(CreateBookingRequest request) {
         validateBookingRequest(request);
@@ -38,7 +44,7 @@ public class BookingService {
 
         Booking booking = BookingMapper.toBooking(request);
 
-        double totalPrice = calculateTotalPrice(room.getBasePrice(), request.getCheckInDate(), request.getCheckOutDate());
+        double totalPrice = calculateTotalPrice(room, request.getCheckInDate(), request.getCheckOutDate());
 
         booking.setTotalPrice(totalPrice);
         booking.setStatus(BookingStatus.CONFIRMED);
@@ -47,6 +53,14 @@ public class BookingService {
 
         room.setStatus(RoomStatus.OCCUPIED);
         roomRepository.save(room);
+
+        User user = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        notificationManager.notifyByEmailAndSms(user.getEmail(), user.getPhoneNumber(),
+                "Your booking for room " + room.getRoomNumber() +
+                " from " + booking.getCheckInDate() + " to " + booking.getCheckOutDate() +
+                " has been CONFIRMED. Total price: N" + totalPrice);
 
         return BookingMapper.toResponse(savedBooking);
     }
@@ -64,6 +78,15 @@ public class BookingService {
         roomRepository.save(room);
 
         Booking updatedBooking = bookingRepository.save(booking);
+
+        User user = userRepository.findById(booking.getUserId())
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        notificationManager.notifyByEmailAndSms(user.getEmail(), user.getPhoneNumber(),
+                "Your booking for room " + room.getRoomNumber() +
+                " from " + booking.getCheckInDate() + " to " + booking.getCheckOutDate() +
+                " has been CANCELLED.");
+
         return BookingMapper.toResponse(updatedBooking);
     }
 
@@ -124,16 +147,16 @@ public class BookingService {
         }
     }
 
-    private double calculateTotalPrice(double basePrice, LocalDate checkIn, LocalDate checkOut) {
-        int days = 0;
+    private double calculateTotalPrice(Room room, LocalDate checkIn, LocalDate checkOut) {
+        double total = 0;
 
         LocalDate currentDate = checkIn;
 
         while (currentDate.isBefore(checkOut)) {
-            days++;
+            total += pricingService.calculatePrice(room.getType(), room.getBasePrice(), currentDate);
             currentDate = currentDate.plusDays(1);
         }
 
-        return basePrice * days;
+        return total;
     }
 }
