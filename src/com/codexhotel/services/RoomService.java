@@ -96,6 +96,9 @@ public class RoomService {
         if (request.getRoomType() == null) {
             throw new RoomTypeCannotBeEmptyException("Room type cannot be empty");
         }
+        if (request.getRoomStatus() == null) {
+            throw new RoomStatusCannotBeEmptyException("Room status cannot be empty");
+        }
     }
 
     private void checkAdmin(String userId) {
