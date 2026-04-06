@@ -4,6 +4,7 @@ import com.codexhotel.data.enums.RoomType;
 import com.codexhotel.data.enums.Season;
 import com.codexhotel.data.models.Pricing;
 import com.codexhotel.data.repositories.PricingRepository;
+import com.codexhotel.dtos.responses.PricingResponse;
 import com.codexhotel.exceptions.DatesCannotBeEmptyException;
 import com.codexhotel.exceptions.InvalidBasePriceException;
 import com.codexhotel.exceptions.InvalidRoomRequestException;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +34,19 @@ public class PricingService {
                 .orElseThrow(() -> new PricingNotFoundException("Pricing not found for room type: " + roomType + " and season: " + season));
 
         return basePrice * pricing.getMultiplier();
+    }
+
+    public List<PricingResponse> getPriceList(double basePrice) {
+        return pricingRepository.findAll()
+                .stream()
+                .map(p -> {
+                    PricingResponse response = new PricingResponse();
+                    response.setRoomType(p.getRoomType());
+                    response.setSeason(p.getSeason());
+                    response.setPrice(basePrice * p.getMultiplier());
+                    return response;
+                })
+                .toList();
     }
 
     private Season determineSeason(LocalDate date) {
