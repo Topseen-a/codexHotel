@@ -9,7 +9,5 @@ import java.util.Optional;
 
 public interface PricingRepository extends MongoRepository<Pricing, String> {
 
-    Optional<Pricing> findByRoomType(RoomType roomType);
-
     Optional<Pricing> findByRoomTypeAndSeason(RoomType roomType, Season season);
 }

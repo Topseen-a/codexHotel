@@ -5,10 +5,7 @@ import com.codexhotel.data.enums.Season;
 import com.codexhotel.data.models.Pricing;
 import com.codexhotel.data.repositories.PricingRepository;
 import com.codexhotel.dtos.responses.PricingResponse;
-import com.codexhotel.exceptions.DatesCannotBeEmptyException;
-import com.codexhotel.exceptions.InvalidBasePriceException;
-import com.codexhotel.exceptions.InvalidRoomRequestException;
-import com.codexhotel.exceptions.PricingNotFoundException;
+import com.codexhotel.exceptions.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -36,14 +33,18 @@ public class PricingService {
         return basePrice * pricing.getMultiplier();
     }
 
-    public List<PricingResponse> getPriceList(double basePrice) {
+    public List<PricingResponse> getPriceList() {
         return pricingRepository.findAll()
                 .stream()
                 .map(p -> {
                     PricingResponse response = new PricingResponse();
+
+                    double basePrice = getBasePriceByRoomType(p.getRoomType());
+
                     response.setRoomType(p.getRoomType());
                     response.setSeason(p.getSeason());
                     response.setPrice(basePrice * p.getMultiplier());
+
                     return response;
                 })
                 .toList();
@@ -67,5 +68,13 @@ public class PricingService {
 
         int month = date.getMonthValue();
         return month == 12;
+    }
+
+    private double getBasePriceByRoomType(RoomType roomType) {
+        return switch (roomType) {
+            case STANDARD -> 5_000;
+            case DELUXE -> 10_000;
+            case SUITE -> 15_000;
+        };
     }
 }
