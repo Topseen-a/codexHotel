@@ -26,7 +26,7 @@ public class PaymentService {
     private final UserRepository userRepository;
     private final NotificationManager notificationManager;
 
-    public PaymentResponse createPayment(PaymentRequest request) {
+    public PaymentResponse makePayment(PaymentRequest request) {
         validatePaymentRequest(request);
 
         Booking booking = bookingRepository.findById(request.getBookingId())
