@@ -78,7 +78,7 @@ public class BookingServiceTest {
 
         CreateBookingRequest request = new CreateBookingRequest();
         request.setUserId(savedUser.getId());
-        request.setRoomId(savedRoom.getId());
+        request.setRoomType(savedRoom.getType());
         request.setCheckInDate(LocalDate.of(2026, 4, 6));
         request.setCheckOutDate(LocalDate.of(2026, 4, 8));
 
@@ -101,15 +101,31 @@ public class BookingServiceTest {
         room.setRoomNumber(101);
         room.setType(RoomType.STANDARD);
         room.setBasePrice(5_000);
-        room.setStatus(RoomStatus.OCCUPIED);
+        room.setStatus(RoomStatus.AVAILABLE);
 
         Room savedRoom = roomRepository.save(room);
 
+        Pricing pricing = new Pricing();
+        pricing.setRoomType(RoomType.STANDARD);
+        pricing.setSeason(Season.WEEKDAY);
+        pricing.setMultiplier(1);
+
+        pricingRepository.save(pricing);
+
+        Booking existingBooking = new Booking();
+        existingBooking.setUserId(savedUser.getId());
+        existingBooking.setRoomId(savedRoom.getId());
+        existingBooking.setCheckInDate(LocalDate.of(2026, 4, 10));
+        existingBooking.setCheckOutDate(LocalDate.of(2026, 4, 15));
+        existingBooking.setStatus(BookingStatus.CONFIRMED);
+
+        bookingRepository.save(existingBooking);
+
         CreateBookingRequest request = new CreateBookingRequest();
-        request.setUserId(user.getId());
-        request.setRoomId(savedRoom.getId());
-        request.setCheckInDate(LocalDate.now());
-        request.setCheckOutDate(LocalDate.now().plusDays(2));
+        request.setUserId(savedUser.getId());
+        request.setRoomType(savedRoom.getType());
+        request.setCheckInDate(LocalDate.of(2026, 4, 12));
+        request.setCheckOutDate(LocalDate.of(2026, 4, 18));
 
         assertThrows(RoomNotAvailableException.class, () -> bookingService.createBooking(request));
     }
@@ -150,7 +166,7 @@ public class BookingServiceTest {
 
         CreateBookingRequest request = new CreateBookingRequest();
         request.setUserId(user.getId());
-        request.setRoomId(savedRoom.getId());
+        request.setRoomType(savedRoom.getType());
         request.setCheckInDate(LocalDate.of(2026, 4, 8));
         request.setCheckOutDate(LocalDate.of(2026, 4, 12));
 

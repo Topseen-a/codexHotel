@@ -1,6 +1,7 @@
 package com.codexhotel.data.models;
 
 import com.codexhotel.data.enums.BookingStatus;
+import com.codexhotel.data.enums.RoomType;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -15,6 +16,7 @@ public class Booking {
     private String id;
     private String userId;
     private String roomId;
+    private RoomType roomType;
     private LocalDate checkInDate;
     private LocalDate checkOutDate;
     private BookingStatus status;

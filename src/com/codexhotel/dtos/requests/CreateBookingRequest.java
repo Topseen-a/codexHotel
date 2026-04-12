@@ -1,5 +1,6 @@
 package com.codexhotel.dtos.requests;
 
+import com.codexhotel.data.enums.RoomType;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -8,7 +9,7 @@ import java.time.LocalDate;
 public class CreateBookingRequest {
 
     private String userId;
-    private String roomId;
+    private RoomType RoomType;
     private LocalDate checkInDate;
     private LocalDate checkOutDate;
 }

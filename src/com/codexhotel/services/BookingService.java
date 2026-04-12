@@ -37,24 +37,24 @@ public class BookingService {
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
-        Room room = roomRepository.findById(request.getRoomId())
-                .orElseThrow(() -> new RoomNotFoundException("Room not found"));
+        List<Room> rooms = roomRepository.findByType(request.getRoomType());
 
-        if (room.getStatus() != RoomStatus.AVAILABLE) {
-            throw new RoomNotAvailableException("Room is not available");
+        if (rooms.isEmpty()) {
+            throw new RoomNotFoundException("No rooms found for this type");
         }
 
-        validateRoomAvailability(request.getRoomId(), request.getCheckInDate(), request.getCheckOutDate());
+        Room room = rooms.stream()
+                .filter(r -> isRoomFree(r.getId(), request.getCheckInDate(), request.getCheckOutDate()))
+                .findFirst()
+                .orElseThrow(() -> new RoomNotAvailableException("No available room for selected dates"));
 
         Booking booking = BookingMapper.toBooking(request);
+
+        booking.setRoomId(room.getId());
         booking.setTotalPrice(calculateTotalPrice(room, request.getCheckInDate(), request.getCheckOutDate()));
         booking.setStatus(BookingStatus.CONFIRMED);
 
         Booking savedBooking = bookingRepository.save(booking);
-
-        room.setStatus(RoomStatus.OCCUPIED);
-        roomRepository.save(room);
-
 
         notificationManager.notifyByEmailAndSms(user.getEmail(), user.getPhoneNumber(),
                 "Your booking for room " + room.getRoomNumber() +
@@ -156,7 +156,7 @@ public class BookingService {
         if (request.getUserId() == null || request.getUserId().isBlank()) {
             throw new UserIdCannotBeEmptyException("User ID cannot be empty");
         }
-        if (request.getRoomId() == null || request.getRoomId().isBlank()) {
+        if (request.getRoomType() == null) {
             throw new RoomIdCannotBeEmptyException("Room ID cannot be empty");
         }
         if (request.getCheckInDate() == null || request.getCheckOutDate() == null) {
@@ -167,7 +167,7 @@ public class BookingService {
         }
     }
 
-    private void validateRoomAvailability(String roomId, LocalDate checkIn, LocalDate checkOut) {
+    private boolean isRoomFree(String roomId, LocalDate checkIn, LocalDate checkOut) {
         List<Booking> bookings = bookingRepository.findByRoomId(roomId);
 
         for (Booking existing : bookings) {
@@ -175,10 +175,9 @@ public class BookingService {
 
             boolean overlaps = !(checkOut.isBefore(existing.getCheckInDate()) || checkIn.isAfter(existing.getCheckOutDate()));
 
-            if (overlaps) {
-                throw new RoomNotAvailableException("Room already booked for selected dates");
-            }
+            if (overlaps) return false;
         }
+        return true;
     }
 
     private double calculateTotalPrice(Room room, LocalDate checkIn, LocalDate checkOut) {

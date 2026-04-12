@@ -1,6 +1,7 @@
 package com.codexhotel.data.repositories;
 
 import com.codexhotel.data.enums.RoomStatus;
+import com.codexhotel.data.enums.RoomType;
 import com.codexhotel.data.models.Room;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
@@ -12,4 +13,6 @@ public interface RoomRepository extends MongoRepository<Room, String> {
     Optional<Room> findByRoomNumber(int roomNumber);
 
     List<Room> findByStatus(RoomStatus status);
+
+    List<Room> findByType(RoomType type);
 }

@@ -12,7 +12,7 @@ public class BookingMapper {
     public static Booking toBooking(CreateBookingRequest request) {
         Booking booking = new Booking();
         booking.setUserId(request.getUserId());
-        booking.setRoomId(request.getRoomId());
+        booking.setRoomType(request.getRoomType());
         booking.setCheckInDate(request.getCheckInDate());
         booking.setCheckOutDate(request.getCheckOutDate());
         booking.setCreatedAt(LocalDate.now());
@@ -26,7 +26,7 @@ public class BookingMapper {
         BookingResponse response = new BookingResponse();
         response.setBookingId(booking.getId());
         response.setUserId(booking.getUserId());
-        response.setRoomId(booking.getRoomId());
+        booking.setRoomType(booking.getRoomType());
         response.setCheckInDate(booking.getCheckInDate());
         response.setCheckOutDate(booking.getCheckOutDate());
         response.setStatus(booking.getStatus());

@@ -10,7 +10,7 @@ public class BookingResponse {
 
     private String bookingId;
     private String userId;
-    private String roomId;
+    private String roomNumber;
     private LocalDate checkInDate;
     private LocalDate checkOutDate;
     private BookingStatus status;
