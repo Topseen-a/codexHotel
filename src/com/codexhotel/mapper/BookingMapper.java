@@ -18,7 +18,6 @@ public class BookingMapper {
         booking.setCreatedAt(LocalDate.now());
         booking.setStatus(BookingStatus.CONFIRMED);
         booking.setTotalPrice(0.0);
-
         return booking;
     }
 
@@ -26,12 +25,10 @@ public class BookingMapper {
         BookingResponse response = new BookingResponse();
         response.setBookingId(booking.getId());
         response.setUserId(booking.getUserId());
-        booking.setRoomType(booking.getRoomType());
         response.setCheckInDate(booking.getCheckInDate());
         response.setCheckOutDate(booking.getCheckOutDate());
         response.setStatus(booking.getStatus());
         response.setTotalPrice(booking.getTotalPrice());
-
         return response;
     }
 }

@@ -9,7 +9,7 @@ import java.time.LocalDate;
 public class CreateBookingRequest {
 
     private String userId;
-    private RoomType RoomType;
+    private RoomType roomType;
     private LocalDate checkInDate;
     private LocalDate checkOutDate;
 }
