@@ -1,0 +1,36 @@
+.rooms-hero {
+  background:
+    linear-gradient(160deg, rgba(22, 40, 31, 0.88), rgba(31, 58, 46, 0.82)),
+    url("https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?auto=format&fit=crop&w=1600&h=700&q=80") center/cover no-repeat;
+  color: var(--paper);
+  padding: 88px 0 64px;
+}
+
+.rooms-hero h1 {
+  color: var(--paper);
+  font-size: var(--step-4);
+  max-width: 14ch;
+}
+
+.rooms-hero p {
+  max-width: 46ch;
+  color: rgba(251, 248, 243, 0.8);
+  font-size: 1.05rem;
+  margin-top: 14px;
+}
+
+.rooms-section {
+  padding: 48px 0 80px;
+}
+
+.rooms-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 28px;
+  margin-top: 32px;
+}
+
+.rooms-state {
+  padding: 60px 0;
+  text-align: center;
+}
