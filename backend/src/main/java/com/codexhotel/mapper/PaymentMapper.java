@@ -1,32 +1,29 @@
 package com.codexhotel.mapper;
 
-import com.codexhotel.data.models.Payment;
-import com.codexhotel.dtos.requests.PaymentRequest;
-import com.codexhotel.dtos.responses.PaymentResponse;
+import com.codexhotel.model.Payment;
+import com.codexhotel.dto.request.PaymentRequest;
+import com.codexhotel.dto.response.PaymentResponse;
 
-import java.time.LocalDate;
+public final class PaymentMapper {
 
-public class PaymentMapper {
+    private PaymentMapper() {
+    }
 
     public static Payment toPayment(PaymentRequest request) {
         Payment payment = new Payment();
         payment.setBookingId(request.getBookingId());
         payment.setAmount(request.getAmount());
         payment.setPaymentMethod(request.getPaymentMethod());
-        payment.setPaymentDate(LocalDate.now());
-        payment.setSuccessful(false);
-
         return payment;
     }
 
     public static PaymentResponse toResponse(Payment payment) {
-        PaymentResponse response = new PaymentResponse();
-        response.setPaymentId(payment.getId());
-        response.setBookingId(payment.getBookingId());
-        response.setAmount(payment.getAmount());
-        response.setPaymentDate(payment.getPaymentDate());
-        response.setSuccessful(payment.isSuccessful());
-
-        return response;
+        return PaymentResponse.builder()
+                .paymentId(payment.getId())
+                .bookingId(payment.getBookingId())
+                .amount(payment.getAmount())
+                .paymentDate(payment.getPaymentDate())
+                .successful(payment.isSuccessful())
+                .build();
     }
 }

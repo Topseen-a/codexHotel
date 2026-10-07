@@ -1,31 +1,29 @@
 package com.codexhotel.mapper;
 
-import com.codexhotel.data.models.User;
-import com.codexhotel.dtos.requests.CreateUserRequest;
-import com.codexhotel.dtos.responses.UserResponse;
+import com.codexhotel.model.User;
+import com.codexhotel.dto.request.CreateUserRequest;
+import com.codexhotel.dto.response.UserResponse;
 
-public class UserMapper {
+public final class UserMapper {
+
+    private UserMapper() {
+    }
 
     public static User toUser(CreateUserRequest request) {
         User user = new User();
-        user.setName(request.getName());
-        user.setEmail(request.getEmail());
-        user.setPhoneNumber(request.getPhoneNumber());
-        // Raw password is set here; the service layer is responsible for
-        // encoding it with a PasswordEncoder before the entity is persisted.
-        user.setPassword(request.getPassword());
-
+        user.setName(request.getName().trim());
+        user.setEmail(request.getEmail().trim());
+        user.setPhoneNumber(request.getPhoneNumber().trim());
         return user;
     }
 
     public static UserResponse toResponse(User user) {
-        UserResponse response = new UserResponse();
-        response.setId(user.getId());
-        response.setName(user.getName());
-        response.setEmail(user.getEmail());
-        response.setPhoneNumber(user.getPhoneNumber());
-        response.setRole(user.getRole());
-
-        return response;
+        return UserResponse.builder()
+                .id(user.getId())
+                .name(user.getName())
+                .email(user.getEmail())
+                .phoneNumber(user.getPhoneNumber())
+                .role(user.getRole())
+                .build();
     }
 }

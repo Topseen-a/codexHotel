@@ -1,7 +1,7 @@
 package com.codexhotel.security;
 
-import com.codexhotel.data.enums.Role;
-import com.codexhotel.data.models.User;
+import com.codexhotel.enums.Role;
+import com.codexhotel.model.User;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -10,10 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.List;
 
-/**
- * Adapts our {@link User} domain entity to Spring Security's UserDetails contract,
- * so the rest of the codebase never has to depend on Spring Security types directly.
- */
+
 @Getter
 public class UserPrincipal implements UserDetails {
 

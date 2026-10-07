@@ -1,7 +1,7 @@
 package com.codexhotel.security;
 
-import com.codexhotel.data.models.User;
-import com.codexhotel.data.repositories.UserRepository;
+import com.codexhotel.model.User;
+import com.codexhotel.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

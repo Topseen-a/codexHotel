@@ -1,0 +1,42 @@
+# Local development stack.
+#
+#   docker compose up -d                 -> MongoDB only (run the API with ./mvnw spring-boot:run)
+#   docker compose --profile app up -d   -> MongoDB + the API, built from the Dockerfile
+#   docker compose down                  -> stop (data is kept in the mongo-data volume)
+#   docker compose down -v               -> stop and wipe the database
+
+name: codexhotel
+
+services:
+  mongo:
+    image: mongo:7
+    container_name: codexhotel-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    profiles: ["app"]
+    build: .
+    container_name: codexhotel-api
+    depends_on:
+      mongo:
+        condition: service_healthy
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      # Inside the compose network the database is reachable by its service name.
+      MONGODB_URI: mongodb://mongo:27017/codexhotel
+    ports:
+      - "8080:8080"
+
+volumes:
+  mongo-data:

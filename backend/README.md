@@ -64,6 +64,42 @@ to leave running on every startup, including in production.
 especially on a public deployment, since the default is documented right
 here in this README.
 
+## Project structure
+
+```
+src/main/java/com/codexhotel
+├── CodexHotelApplication.java
+├── config/            Security, seed data, typed @ConfigurationProperties
+├── controller/        REST endpoints (thin: delegate to services)
+├── dto/request/       Request bodies + Bean Validation constraints
+├── dto/response/      Response bodies + ApiResponse envelope
+├── enums/
+├── exception/         AppException hierarchy + GlobalExceptionHandler
+├── mapper/            Entity <-> DTO conversion
+├── model/             MongoDB documents
+├── notification/      Email/SMS notification channels
+├── repository/        Spring Data repositories
+├── security/          JWT, UserPrincipal, AccessGuard, 401/403 handlers
+└── service/           Service interfaces; implementations in service/impl/
+```
+
+### Error handling
+
+Services throw one of a small set of exceptions, each tied to an HTTP status,
+and `GlobalExceptionHandler` turns them into the standard response envelope:
+
+| Exception | Status |
+|---|---|
+| `BadRequestException` | 400 — business-rule violation |
+| `ResourceNotFoundException` | 404 |
+| `ConflictException` | 409 — duplicates, room unavailable |
+| `ForbiddenException` | 403 — authenticated but not allowed |
+
+Input validation lives on the request DTOs (`@NotBlank`, `@Email`, `@Pattern`,
+…) and is enforced both on controller `@Valid` bodies and on service
+interfaces via `@Validated`. Validation failures return 400 with
+`data` holding a `{ field: message }` map.
+
 ## API reference
 
 All responses are wrapped as `{ "success": bool, "message": string, "data": ... }`.
@@ -81,8 +117,8 @@ Send the JWT as `Authorization: Bearer <token>` on every request except
 | Method | Path | Access |
 |---|---|---|
 | POST | `/api/users` | ADMIN — creates staff/guest accounts with any role |
-| GET | `/api/users/{id}` | authenticated |
-| GET | `/api/users?email=` | ADMIN/MANAGER/RECEPTIONIST |
+| GET | `/api/users/{id}` | self or staff |
+| GET | `/api/users/email?email=` | ADMIN/MANAGER/RECEPTIONIST |
 | GET | `/api/users` | ADMIN |
 | PUT | `/api/users/{id}` | self or ADMIN |
 | DELETE | `/api/users/{id}` | self or ADMIN |
@@ -144,6 +180,7 @@ format:
    | `JWT_SECRET` | a long random string (32+ chars) — generate with `openssl rand -base64 48` |
    | `JWT_EXPIRATION_MS` | optional, defaults to `86400000` (24h) |
    | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | optional — override the seeded bootstrap admin's credentials |
+   | `CORS_ALLOWED_ORIGINS` | optional — comma-separated allowed origins, defaults to `*` |
 
    Don't set `PORT` — Render injects it automatically; `application.properties`
    already binds to `${PORT:8080}`.
@@ -155,10 +192,15 @@ format:
 - **Free-tier cold starts**: Render's free web services spin down after
   ~15 minutes idle; the first request after that takes a few seconds to
   wake back up. Fine for a demo; worth a loading state on the frontend.
-- **CORS is currently wide open** (`allowedOriginPatterns("*")` in
-  `SecurityConfig`) so any frontend origin can call it during development.
-  Narrow this to your actual frontend's deployed origin before treating
-  this as production-ready.
+- **CORS defaults to wide open** (`*`) so any frontend origin can call it
+  during development. Set `CORS_ALLOWED_ORIGINS` (comma-separated) to your
+  deployed frontend's origin before treating this as production-ready.
+- **Unique indexes** (user email, room number, room type + season pricing)
+  are created on startup (`spring.data.mongodb.auto-index-creation=true`).
+  If an existing database already contains duplicates, index creation fails
+  and the app won't start — remove the duplicates first.
+- **Money** is stored as `Decimal128` and handled as `BigDecimal` (2 decimal
+  places). Documents written earlier as plain doubles are still read correctly.
 - **Seed data runs automatically** on first startup against whatever
   database it's pointed at, including Atlas — no manual seeding needed.
   Just log in as the seeded admin and change that password once live.
@@ -169,5 +211,5 @@ format:
   `localStorage` where practical.
 - The `role` from `/api/auth/me` or the login response should drive which
   UI is shown — guest booking flow vs. staff dashboard vs. admin panel.
-- Email/SMS notifications are simulated with `System.out.println` in
-  `notifications/`. Swap in a real provider there when ready.
+- Email/SMS notifications are simulated by logging in `notification/`.
+  Swap in a real provider there when ready.
