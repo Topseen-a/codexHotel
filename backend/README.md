@@ -112,6 +112,8 @@ Send the JWT as `Authorization: Bearer <token>` on every request except
 | POST | `/api/auth/register` | public — always creates a GUEST account |
 | POST | `/api/auth/login` | public |
 | GET | `/api/auth/me` | authenticated |
+| POST | `/api/auth/forgot-password` | public — emails a reset link (same reply whether or not the account exists) |
+| POST | `/api/auth/reset-password` | public — `{ token, newPassword }`; links expire after 30 min and are single-use |
 
 ### Users
 | Method | Path | Access |
@@ -181,6 +183,8 @@ format:
    | `JWT_EXPIRATION_MS` | optional, defaults to `86400000` (24h) |
    | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | optional — override the seeded bootstrap admin's credentials |
    | `CORS_ALLOWED_ORIGINS` | optional — comma-separated allowed origins, defaults to `*` |
+   | `FRONTEND_URL` | the deployed frontend URL — used to build password-reset links |
+   | `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM` | SMTP for outgoing email (password resets, booking notifications). Without `MAIL_HOST`, emails are only logged |
 
    Don't set `PORT` — Render injects it automatically; `application.properties`
    already binds to `${PORT:8080}`.
@@ -199,6 +203,9 @@ format:
   are created on startup (`spring.data.mongodb.auto-index-creation=true`).
   If an existing database already contains duplicates, index creation fails
   and the app won't start — remove the duplicates first.
+- **Password reset** stores only a SHA-256 hash of each token (MongoDB TTL
+  index removes expired ones). Changing or resetting a password sets
+  `passwordChangedAt`, which invalidates every JWT issued before it.
 - **Money** is stored as `Decimal128` and handled as `BigDecimal` (2 decimal
   places). Documents written earlier as plain doubles are still read correctly.
 - **Seed data runs automatically** on first startup against whatever

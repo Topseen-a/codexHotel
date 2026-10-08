@@ -7,6 +7,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.time.Instant;
 import java.time.LocalDate;
 
 @Data
@@ -27,4 +28,7 @@ public class User {
 
     private Role role;
     private LocalDate createdAt;
+
+    /** When the password last changed; sessions issued before this are rejected. */
+    private Instant passwordChangedAt;
 }

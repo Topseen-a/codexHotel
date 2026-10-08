@@ -1,13 +1,23 @@
 import { Link } from "react-router-dom";
+import EmptyState from "../components/ui/EmptyState";
+import { useDocumentTitle } from "../hooks/useDocumentTitle";
 
 export default function NotFoundPage() {
+  useDocumentTitle("Page not found");
+
   return (
-    <div className="center-page stack" style={{ textAlign: "center", gap: 16 }}>
-      <h1>Page not found</h1>
-      <p className="muted">That page doesn't exist — or you don't have access to it.</p>
-      <Link to="/rooms" className="btn btn-primary">
-        Back to rooms
-      </Link>
+    <div className="app-page container">
+      <EmptyState
+        icon="mapPin"
+        title="Page not found"
+        action={
+          <Link to="/" className="btn btn-primary">
+            Back to home
+          </Link>
+        }
+      >
+        That page doesn&apos;t exist, or you don&apos;t have access to it.
+      </EmptyState>
     </div>
   );
 }

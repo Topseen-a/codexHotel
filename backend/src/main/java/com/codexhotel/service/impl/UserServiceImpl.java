@@ -18,6 +18,7 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -92,6 +93,7 @@ public class UserServiceImpl implements UserService {
 
         if (request.getPassword() != null) {
             userToUpdate.setPassword(passwordEncoder.encode(request.getPassword()));
+            userToUpdate.setPasswordChangedAt(Instant.now());
         }
 
         if (caller.getRole() == Role.ADMIN && request.getRole() != null) {

@@ -34,7 +34,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private static final String[] PUBLIC_ENDPOINTS = {"/api/auth/register", "/api/auth/login", "/actuator/health"};
+    private static final String[] PUBLIC_ENDPOINTS = {
+            "/api/auth/register",
+            "/api/auth/login",
+            "/api/auth/forgot-password",
+            "/api/auth/reset-password",
+            "/actuator/health"
+    };
     private static final String[] PUBLIC_GET_ENDPOINTS = {"/api/rooms/**", "/api/pricing/**"};
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;

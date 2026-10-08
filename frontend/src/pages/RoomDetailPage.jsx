@@ -1,199 +1,143 @@
-import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useState } from "react";
+import { Link, Navigate, useParams } from "react-router-dom";
 import { listRooms } from "../api/rooms";
-import { createBooking } from "../api/bookings";
-import { contentFor } from "../content/roomContent";
-import { useAuth } from "../context/AuthContext";
+import BookingPanel from "../components/booking/BookingPanel";
+import Alert from "../components/ui/Alert";
+import Icon from "../components/ui/Icon";
+import { SITE } from "../config/site";
+import { ROOM_CONTENT, summarizeRoomTypes } from "../content/rooms";
+import { useAsync } from "../hooks/useAsync";
+import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import "./RoomDetailPage.css";
-
-const nairaFormatter = new Intl.NumberFormat("en-NG", {
-  style: "currency",
-  currency: "NGN",
-  maximumFractionDigits: 0,
-});
-
-function nightsBetween(checkIn, checkOut) {
-  if (!checkIn || !checkOut) return 0;
-  const ms = new Date(checkOut) - new Date(checkIn);
-  return Math.max(0, Math.round(ms / (1000 * 60 * 60 * 24)));
-}
 
 export default function RoomDetailPage() {
   const { roomType } = useParams();
-  const { user, isAuthenticated } = useAuth();
-  const navigate = useNavigate();
-  const content = contentFor(roomType);
-
-  const [rooms, setRooms] = useState([]);
+  const content = ROOM_CONTENT[roomType];
+  useDocumentTitle(content?.name);
+  const rooms = useAsync(listRooms, []);
   const [activeImage, setActiveImage] = useState(0);
-  const [checkInDate, setCheckInDate] = useState("");
-  const [checkOutDate, setCheckOutDate] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState("");
-  const [confirmation, setConfirmation] = useState(null);
 
-  useEffect(() => {
-    listRooms().then(setRooms).catch(() => setRooms([]));
-  }, []);
+  if (!content) return <Navigate to="/rooms" replace />;
 
-  const matchingRooms = rooms.filter((r) => r.type === roomType);
-  const availableCount = matchingRooms.filter((r) => r.status === "AVAILABLE").length;
-  const basePrice = matchingRooms.length
-    ? Math.min(...matchingRooms.map((r) => r.basePrice))
-    : 0;
-  const nights = nightsBetween(checkInDate, checkOutDate);
-  const estimatedTotal = nights * basePrice;
-
-  const handleBook = async (e) => {
-    e.preventDefault();
-    setError("");
-    setConfirmation(null);
-
-    if (!isAuthenticated) {
-      navigate("/login", { state: { from: { pathname: `/rooms/${roomType}` } } });
-      return;
-    }
-
-    if (nights <= 0) {
-      setError("Check-out must be after check-in.");
-      return;
-    }
-
-    setSubmitting(true);
-    try {
-      const booking = await createBooking({
-        userId: user.id,
-        roomType,
-        checkInDate,
-        checkOutDate,
-      });
-      setConfirmation(booking);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const today = new Date().toISOString().split("T")[0];
+  const summary = summarizeRoomTypes(rooms.data || []).find((s) => s.type === roomType);
+  const fromPrice = summary?.fromPrice ?? null;
+  const bookable = rooms.loading || Boolean(summary?.bookableRooms);
 
   return (
-    <div className="detail-page container">
-      <Link to="/rooms" className="detail-back">
-        ← Back to all rooms
+    <div className="room-detail container">
+      <Link to="/rooms" className="back-link">
+        <Icon name="arrowLeft" size={16} /> All rooms
       </Link>
 
-      <div className="detail-header">
-        <h1>{content.label}</h1>
-        <p className="muted">{content.tagline}</p>
-      </div>
-
-      <div className="detail-gallery">
-        <div className="detail-gallery-main">
-          <img src={content.images[activeImage]} alt={content.label} />
+      <header className="room-detail-header">
+        <div>
+          <span className="eyebrow">{content.view}</span>
+          <h1>{content.name}</h1>
+          <p className="muted">{content.tagline}</p>
         </div>
-        <div className="detail-gallery-side">
-          {content.images.slice(1, 4).map((src, i) => (
-            <div key={src} role="button" tabIndex={0} onClick={() => setActiveImage(i + 1)}>
-              <img src={src} alt={`${content.label} view ${i + 2}`} />
-            </div>
+        {summary && (
+          <span className={`badge ${summary.availableNow ? "badge-success" : "badge-info"}`}>
+            {summary.availableNow
+              ? `${summary.availableNow} of ${summary.totalRooms} free tonight`
+              : "Check your dates for availability"}
+          </span>
+        )}
+      </header>
+
+      <div className="room-gallery">
+        <div className="room-gallery-main">
+          <img src={content.images[activeImage]} alt={`${content.name} — photo ${activeImage + 1}`} />
+        </div>
+        <div className="room-gallery-thumbs" role="tablist" aria-label="Room photos">
+          {content.images.map((src, i) => (
+            <button
+              key={src}
+              type="button"
+              role="tab"
+              aria-selected={i === activeImage}
+              aria-label={`Show photo ${i + 1}`}
+              className={i === activeImage ? "active" : ""}
+              onClick={() => setActiveImage(i)}
+            >
+              <img src={src} alt="" loading="lazy" />
+            </button>
           ))}
         </div>
       </div>
 
-      <div className="detail-layout">
-        <div>
-          <div className="detail-section">
+      <div className="room-detail-layout">
+        <div className="room-detail-info">
+          <ul className="room-facts">
+            <li>
+              <Icon name="users" size={22} />
+              <span>
+                <strong>Up to {content.guests}</strong> guests
+              </span>
+            </li>
+            <li>
+              <Icon name="bed" size={22} />
+              <span>
+                <strong>{content.beds}</strong>
+              </span>
+            </li>
+            <li>
+              <Icon name="maximize" size={22} />
+              <span>
+                <strong>{content.size}</strong> room size
+              </span>
+            </li>
+            <li>
+              <Icon name="eye" size={22} />
+              <span>
+                <strong>{content.view}</strong>
+              </span>
+            </li>
+          </ul>
+
+          <section>
             <h2>About this room</h2>
             <p>{content.description}</p>
-          </div>
+          </section>
 
-          <div className="detail-section">
-            <h2>Popular amenities</h2>
-            <ul className="detail-amenities">
-              {content.amenities.map((a) => (
-                <li key={a}>{a}</li>
+          <section>
+            <h2>Amenities</h2>
+            <ul className="room-amenities">
+              {content.amenities.map((amenity) => (
+                <li key={amenity}>
+                  <Icon name="check" size={16} /> {amenity}
+                </li>
               ))}
             </ul>
-          </div>
+          </section>
 
-          <div className="detail-section">
-            <h2>Availability</h2>
-            <p className="muted">
-              {matchingRooms.length === 0
-                ? "No rooms of this type are configured yet."
-                : availableCount > 0
-                ? `${availableCount} of ${matchingRooms.length} rooms currently available.`
-                : "Fully booked right now — try different dates."}
-            </p>
-          </div>
+          <section>
+            <h2>Good to know</h2>
+            <ul className="room-policies">
+              <li>
+                <Icon name="clock" size={18} />
+                <span>
+                  Check-in from <strong>{SITE.checkInTime}</strong>, check-out by <strong>{SITE.checkOutTime}</strong>
+                </span>
+              </li>
+              <li>
+                <Icon name="calendarCheck" size={18} />
+                <span>Cancel online from My Bookings any time before your stay begins.</span>
+              </li>
+              <li>
+                <Icon name="creditCard" size={18} />
+                <span>Pay online after booking — in full or in parts — by card, transfer or cash at the desk.</span>
+              </li>
+              <li>
+                <Icon name="tag" size={18} />
+                <span>Weekend nights and all December dates are priced at seasonal rates.</span>
+              </li>
+            </ul>
+          </section>
+
+          {rooms.error && <Alert tone="danger">{rooms.error.message}</Alert>}
         </div>
 
-        <div className="card booking-panel">
-          <div className="price">
-            {nairaFormatter.format(basePrice)}
-            <small> / night, before seasonal pricing</small>
-          </div>
-
-          {confirmation ? (
-            <div className="alert alert-success">
-              Booking confirmed — total {nairaFormatter.format(confirmation.totalPrice)} for room{" "}
-              {confirmation.roomNumber}.{" "}
-              <Link to="/bookings">View your bookings</Link>.
-            </div>
-          ) : (
-            <form onSubmit={handleBook}>
-              {error && <div className="alert alert-danger">{error}</div>}
-
-              <div className="booking-dates">
-                <div className="field">
-                  <label htmlFor="checkin">Check-in</label>
-                  <input
-                    id="checkin"
-                    type="date"
-                    required
-                    min={today}
-                    value={checkInDate}
-                    onChange={(e) => setCheckInDate(e.target.value)}
-                  />
-                </div>
-                <div className="field">
-                  <label htmlFor="checkout">Check-out</label>
-                  <input
-                    id="checkout"
-                    type="date"
-                    required
-                    min={checkInDate || today}
-                    value={checkOutDate}
-                    onChange={(e) => setCheckOutDate(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              {nights > 0 && (
-                <div className="booking-summary">
-                  <div className="spread">
-                    <span>
-                      {nairaFormatter.format(basePrice)} × {nights} night{nights > 1 ? "s" : ""}
-                    </span>
-                    <span>{nairaFormatter.format(estimatedTotal)}</span>
-                  </div>
-                  <div className="spread muted" style={{ fontSize: "0.8rem" }}>
-                    <span>Weekend / festive dates are priced higher automatically</span>
-                  </div>
-                  <div className="spread total">
-                    <span>Estimated total</span>
-                    <span>{nairaFormatter.format(estimatedTotal)}</span>
-                  </div>
-                </div>
-              )}
-
-              <button type="submit" className="btn btn-primary btn-block" disabled={submitting}>
-                {submitting ? "Booking…" : isAuthenticated ? "Book this room" : "Log in to book"}
-              </button>
-            </form>
-          )}
-        </div>
+        <BookingPanel roomType={roomType} room={content} fromPrice={fromPrice} bookable={bookable} />
       </div>
     </div>
   );

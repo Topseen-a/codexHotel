@@ -1,50 +1,84 @@
 /*
-  codexHotel design tokens.
+  CodexHotel design tokens.
 
-  Direction: a small boutique hotel's own booking system — warm, quiet,
-  hospitality-trade materials (linen, brass fittings, dark timber) rather
-  than a generic SaaS dashboard. Deep forest green + brass instead of the
-  default cream/terracotta pairing; a warm serif for anything that reads
-  as "the hotel speaking" (room names, prices, headings), a plain sans for
-  anything functional (forms, tables, staff tools).
+  Warm-dark boutique direction: espresso surfaces, a soft bronze accent for
+  calls to action and highlights, sand-coloured text, and a single light
+  geometric typeface (Jost) — uppercase for headlines, sentence case for UI.
 */
 
 :root {
-  /* Color */
-  --ink: #1c2321;
-  --ink-soft: #565f59;
-  --ink-faint: #8b9289;
-  --forest: #1f3a2e;
-  --forest-deep: #16281f;
-  --forest-light: #2f4e3d;
-  --brass: #b8863f;
-  --brass-light: #d9ae6e;
-  --brass-dim: #ede1cb;
-  --paper: #fbf8f3;
-  --paper-dim: #f1ece1;
-  --paper-line: #ded5c2;
-  --white: #ffffff;
-  --danger: #a23b2e;
-  --danger-bg: #f7e9e6;
-  --success: #3b6e52;
-  --success-bg: #e8f0ea;
+  color-scheme: dark;
+
+  /* Surfaces */
+  --bg: #171513;
+  --surface: #201d1a;
+  --surface-muted: #282420;
+  --surface-input: #1b1916;
+  --surface-deep: #0f0d0b;
+
+  /* Text */
+  --ink: #efe8dd;
+  --ink-soft: #b9afa2;
+  --ink-faint: #8c8378;
+  --line: rgba(236, 226, 212, 0.09);
+  --line-strong: rgba(236, 226, 212, 0.18);
+
+  /* Bronze accent */
+  --accent: #a48a6a;
+  --accent-hover: #b59a78;
+  --accent-strong: #c8b090; /* icons and borders on dark */
+  --accent-text: #cdb594; /* eyebrows, links, focus */
+  --accent-tint: rgba(196, 168, 130, 0.12);
+  --accent-tint-strong: rgba(196, 168, 130, 0.22);
+  --on-accent: #fffaf2;
+  --sand: #ece4d8; /* light buttons over photography */
+
+  --gold: #c9a15b;
+  --star: #e8b04a;
+
+  /* Status */
+  --success: #86c9a2;
+  --success-bg: rgba(134, 201, 162, 0.12);
+  --warning: #e6bd6c;
+  --warning-bg: rgba(230, 189, 108, 0.12);
+  --danger: #f0928a;
+  --danger-bg: rgba(240, 146, 138, 0.12);
+  --danger-fill: #b3402f;
+  --info: #a9bfd8;
+  --info-bg: rgba(169, 191, 216, 0.12);
 
   /* Type */
-  --font-display: "Fraunces", "Iowan Old Style", serif;
-  --font-body: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: "Jost", "Futura", "Century Gothic", sans-serif;
+  --font-body: "Jost", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --display-weight: 400;
 
-  /* Scale */
-  --step-0: clamp(0.95rem, 0.9rem + 0.2vw, 1rem);
-  --step-1: clamp(1.15rem, 1.05rem + 0.4vw, 1.3rem);
-  --step-2: clamp(1.5rem, 1.3rem + 0.8vw, 1.9rem);
-  --step-3: clamp(2rem, 1.7rem + 1.2vw, 2.75rem);
-  --step-4: clamp(2.6rem, 2.1rem + 2vw, 3.75rem);
+  --step--1: clamp(0.78rem, 0.76rem + 0.1vw, 0.84rem);
+  --step-0: clamp(0.95rem, 0.91rem + 0.15vw, 1.02rem);
+  --step-1: clamp(1.1rem, 1.02rem + 0.35vw, 1.3rem);
+  --step-2: clamp(1.4rem, 1.22rem + 0.8vw, 1.9rem);
+  --step-3: clamp(1.8rem, 1.5rem + 1.4vw, 2.7rem);
+  --step-4: clamp(2.4rem, 1.9rem + 2.6vw, 4.2rem);
+
+  /* Shape & depth */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-pill: 999px;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.5);
 
   /* Layout */
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 14px;
-  --shadow-card: 0 1px 2px rgba(28, 35, 33, 0.06), 0 8px 24px rgba(28, 35, 33, 0.06);
-  --shadow-panel: 0 12px 40px rgba(22, 40, 31, 0.14);
-  --max-width: 1180px;
+  --container: 1240px;
+  --gutter: 20px;
+  --nav-height: 76px;
+  --section-space: clamp(56px, 7vw, 96px);
+}
+
+@media (max-width: 600px) {
+  :root {
+    --gutter: 16px;
+    --nav-height: 64px;
+  }
 }

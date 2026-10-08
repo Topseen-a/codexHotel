@@ -46,7 +46,17 @@ public class JwtService {
     public boolean isTokenValid(String token, UserDetails userDetails) {
         Claims claims = parseClaims(token);
         return claims.getSubject().equals(userDetails.getUsername())
-                && claims.getExpiration().after(new Date());
+                && claims.getExpiration().after(new Date())
+                && !issuedBeforePasswordChange(claims, userDetails);
+    }
+
+    /** A password change (or reset) signs out every session created before it. */
+    private boolean issuedBeforePasswordChange(Claims claims, UserDetails userDetails) {
+        if (!(userDetails instanceof UserPrincipal principal) || principal.getPasswordChangedAt() == null) {
+            return false;
+        }
+        // JWT timestamps have one-second precision.
+        return claims.getIssuedAt().toInstant().getEpochSecond() < principal.getPasswordChangedAt().getEpochSecond();
     }
 
     private Claims parseClaims(String token) {
