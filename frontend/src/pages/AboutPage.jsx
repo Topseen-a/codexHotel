@@ -1,8 +1,9 @@
 import { Link } from "react-router-dom";
 import Icon from "../components/ui/Icon";
+import Photo from "../components/ui/Photo";
 import { SITE } from "../config/site";
 import { ADVANTAGES, EXPERIENCES } from "../content/experiences";
-import { IMAGES } from "../content/images";
+import { backgroundFor, IMAGES } from "../content/images";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import "./InfoPages.css";
 
@@ -11,7 +12,7 @@ export default function AboutPage() {
 
   return (
     <>
-      <section className="page-hero" style={{ backgroundImage: `url(${IMAGES.about})` }}>
+      <section className="page-hero" style={{ backgroundImage: `url(${backgroundFor(IMAGES.about)})` }}>
         <div className="container">
           <span className="eyebrow">About us</span>
           <h1>Hospitality, by the Sea</h1>
@@ -23,7 +24,7 @@ export default function AboutPage() {
 
       <section className="container section about-story">
         <div className="about-story-photo">
-          <img src={IMAGES.aboutStory} alt="The resort's pool and white facade" loading="lazy" />
+          <Photo src={IMAGES.aboutStory} alt="The resort's pool and white facade" sizes="(max-width: 960px) 100vw, 50vw" />
         </div>
         <div className="stack" style={{ "--stack-gap": "18px" }}>
           <span className="eyebrow">Our story</span>
@@ -70,7 +71,7 @@ export default function AboutPage() {
         <div className="about-experiences">
           {EXPERIENCES.map((experience) => (
             <article key={experience.title} className="about-experience card">
-              <img src={experience.image} alt="" loading="lazy" />
+              <Photo src={experience.image} sizes="(max-width: 520px) 100vw, 160px" />
               <div>
                 <h3>{experience.title}</h3>
                 <p className="muted">{experience.long}</p>

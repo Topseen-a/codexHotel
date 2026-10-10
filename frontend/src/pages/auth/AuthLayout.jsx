@@ -1,13 +1,13 @@
 import { Link } from "react-router-dom";
 import Brand from "../../components/layout/Brand";
 import Icon from "../../components/ui/Icon";
-import { IMAGES } from "../../content/images";
+import { backgroundFor, IMAGES } from "../../content/images";
 import "./AuthPages.css";
 
 export default function AuthLayout({ title, subtitle, children, footer }) {
   return (
     <div className="auth">
-      <aside className="auth-visual" style={{ backgroundImage: `url(${IMAGES.auth})` }}>
+      <aside className="auth-visual" style={{ backgroundImage: `url(${backgroundFor(IMAGES.auth)})` }}>
         <Brand className="brand--light" />
         <div className="auth-visual-copy">
           <p className="script">More than a stay,</p>

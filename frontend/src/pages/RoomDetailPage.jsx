@@ -4,6 +4,7 @@ import { listRooms } from "../api/rooms";
 import BookingPanel from "../components/booking/BookingPanel";
 import Alert from "../components/ui/Alert";
 import Icon from "../components/ui/Icon";
+import Photo from "../components/ui/Photo";
 import { SITE } from "../config/site";
 import { ROOM_CONTENT, summarizeRoomTypes } from "../content/rooms";
 import { useAsync } from "../hooks/useAsync";
@@ -46,7 +47,12 @@ export default function RoomDetailPage() {
 
       <div className="room-gallery">
         <div className="room-gallery-main">
-          <img src={content.images[activeImage]} alt={`${content.name} — photo ${activeImage + 1}`} />
+          <Photo
+            src={content.images[activeImage]}
+            alt={`${content.name} — photo ${activeImage + 1}`}
+            sizes="(max-width: 960px) 100vw, 1000px"
+            priority
+          />
         </div>
         <div className="room-gallery-thumbs" role="tablist" aria-label="Room photos">
           {content.images.map((src, i) => (
@@ -59,7 +65,7 @@ export default function RoomDetailPage() {
               className={i === activeImage ? "active" : ""}
               onClick={() => setActiveImage(i)}
             >
-              <img src={src} alt="" loading="lazy" />
+              <Photo src={src} sizes="(max-width: 960px) 25vw, 130px" />
             </button>
           ))}
         </div>

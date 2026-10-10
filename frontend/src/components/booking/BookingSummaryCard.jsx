@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { roomContent } from "../../content/rooms";
 import { formatDate, formatNaira, nightsBetween, pluralize } from "../../utils/format";
 import Icon from "../ui/Icon";
+import Photo from "../ui/Photo";
 import StatusBadge from "../ui/StatusBadge";
 
 /** One booking in a list: photo, room, dates and total, linking to its detail page. */
@@ -12,7 +13,7 @@ export default function BookingSummaryCard({ booking }) {
   return (
     <article className="booking-card card">
       <div className="booking-card-image">
-        <img src={room.images[0]} alt="" loading="lazy" />
+        <Photo src={room.images[0]} sizes="(max-width: 640px) 100vw, 220px" />
       </div>
       <div className="booking-card-body">
         <div className="spread" style={{ alignItems: "flex-start" }}>

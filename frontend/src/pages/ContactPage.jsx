@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import Icon from "../components/ui/Icon";
 import { SITE } from "../config/site";
-import { IMAGES } from "../content/images";
+import { backgroundFor, IMAGES } from "../content/images";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import "./InfoPages.css";
 
@@ -17,7 +17,7 @@ export default function ContactPage() {
 
   return (
     <>
-      <section className="page-hero" style={{ backgroundImage: `url(${IMAGES.contact})` }}>
+      <section className="page-hero" style={{ backgroundImage: `url(${backgroundFor(IMAGES.contact)})` }}>
         <div className="container">
           <span className="eyebrow">Contact</span>
           <h1>We&apos;re Here to Help</h1>

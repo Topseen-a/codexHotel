@@ -1,13 +1,14 @@
 import { Link } from "react-router-dom";
 import { SITE } from "../../config/site";
 import { EXPERIENCES } from "../../content/experiences";
-import { IMAGES } from "../../content/images";
+import { backgroundFor, IMAGES } from "../../content/images";
 import Icon from "../ui/Icon";
+import Photo from "../ui/Photo";
 
 export default function ExperienceSection() {
   return (
     <section className="experience" id="experiences">
-      <div className="experience-spotlight" style={{ backgroundImage: `url(${IMAGES.beachResort})` }}>
+      <div className="experience-spotlight" style={{ backgroundImage: `url(${backgroundFor(IMAGES.beachResort)})` }}>
         <div className="experience-spotlight-content">
           <span className="eyebrow">Top destination</span>
           <h2>Experience Paradise at Our Beach Resort</h2>
@@ -33,7 +34,7 @@ export default function ExperienceSection() {
           {EXPERIENCES.map((experience) => (
             <Link key={experience.slug} to={`/experiences#${experience.slug}`} className="experience-card">
               <div className="experience-card-image">
-                <img src={experience.image} alt="" loading="lazy" />
+                <Photo src={experience.image} sizes="(max-width: 640px) 45vw, (max-width: 1080px) 23vw, 12vw" />
               </div>
               <h3>{experience.title}</h3>
               <p>{experience.description}</p>

@@ -28,3 +28,39 @@ export const IMAGES = {
 };
 
 export { unsplash };
+
+const STEPS = [320, 480, 640, 800, 1080, 1400, 1800, 2400];
+
+/** Rewrites an Unsplash URL to another width, scaling a fixed height (crop) proportionally. */
+function resizeUnsplash(url, width) {
+  const params = new URL(url).searchParams;
+  const sourceWidth = Number(params.get("w"));
+  const sourceHeight = Number(params.get("h"));
+  let next = url.replace(/([?&])w=\d+/, `$1w=${width}`);
+  if (sourceWidth && sourceHeight) {
+    next = next.replace(/([?&])h=\d+/, `$1h=${Math.round((sourceHeight * width) / sourceWidth)}`);
+  }
+  return next;
+}
+
+/** `srcset` for an Unsplash photo: the same image at several widths, up to its original size. */
+export function srcSetFor(url) {
+  if (!url?.includes("images.unsplash.com")) return undefined;
+  const maxWidth = Number(new URL(url).searchParams.get("w")) || 1600;
+  return STEPS.filter((w) => w < maxWidth)
+    .concat(maxWidth)
+    .map((w) => `${resizeUnsplash(url, w)} ${w}w`)
+    .join(", ");
+}
+
+/**
+ * For CSS background photos (which can't use srcset): pick a width that covers
+ * the current screen, so phones don't download desktop-sized images.
+ */
+export function backgroundFor(url) {
+  if (!url?.includes("images.unsplash.com") || typeof window === "undefined") return url;
+  const maxWidth = Number(new URL(url).searchParams.get("w")) || 2000;
+  const needed = window.innerWidth * Math.min(window.devicePixelRatio || 1, 2);
+  const width = STEPS.find((w) => w >= needed) || STEPS[STEPS.length - 1];
+  return resizeUnsplash(url, Math.min(width, maxWidth));
+}

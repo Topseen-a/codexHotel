@@ -366,6 +366,9 @@
     padding: 4px var(--gutter) 12px;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
+    /* Snap cards to the page gutter, not the screen edge, so they line up
+       with the heading and button above. */
+    scroll-padding-inline: var(--gutter);
     scrollbar-width: none;
   }
 

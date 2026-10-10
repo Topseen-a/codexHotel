@@ -6,7 +6,8 @@ import DatePicker from "../components/ui/DatePicker";
 import Dropdown from "../components/ui/Dropdown";
 import EmptyState from "../components/ui/EmptyState";
 import Icon from "../components/ui/Icon";
-import { IMAGES } from "../content/images";
+import Photo from "../components/ui/Photo";
+import { backgroundFor, IMAGES } from "../content/images";
 import { ROOM_TYPES, roomContent, summarizeRoomTypes } from "../content/rooms";
 import { useAsync } from "../hooks/useAsync";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
@@ -40,7 +41,7 @@ export default function RoomsPage() {
 
   return (
     <>
-      <section className="page-hero" style={{ backgroundImage: `url(${IMAGES.rooms})` }}>
+      <section className="page-hero" style={{ backgroundImage: `url(${backgroundFor(IMAGES.rooms)})` }}>
         <div className="container">
           <span className="eyebrow">Rooms &amp; suites</span>
           <h1>Find Your Room</h1>
@@ -117,7 +118,7 @@ export default function RoomsPage() {
           {suitable.map((room) => (
             <article key={room.type} className="room-row card">
               <Link to={`/rooms/${room.type}${query}`} className="room-row-image" tabIndex={-1} aria-hidden="true">
-                <img src={room.images[0]} alt="" loading="lazy" />
+                <Photo src={room.images[0]} sizes="(max-width: 860px) 100vw, 42vw" />
               </Link>
               <div className="room-row-body">
                 <div className="room-row-head">

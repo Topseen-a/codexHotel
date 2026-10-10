@@ -7,6 +7,7 @@ import Alert from "../../components/ui/Alert";
 import ConfirmDialog from "../../components/ui/ConfirmDialog";
 import EmptyState from "../../components/ui/EmptyState";
 import Icon from "../../components/ui/Icon";
+import Photo from "../../components/ui/Photo";
 import PageLoader from "../../components/layout/PageLoader";
 import StatusBadge, { PaymentBadge } from "../../components/ui/StatusBadge";
 import { SITE } from "../../config/site";
@@ -98,7 +99,7 @@ export default function BookingDetailPage() {
       <div className="booking-detail">
         <div className="stack" style={{ "--stack-gap": "24px" }}>
           <section className="card booking-stay">
-            <img src={room.images[0]} alt="" />
+            <Photo src={room.images[0]} sizes="(max-width: 640px) 100vw, 240px" />
             <dl className="booking-stay-facts">
               <div>
                 <dt>Check in</dt>

@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
-import { IMAGES } from "../../content/images";
+import { backgroundFor, IMAGES } from "../../content/images";
 import { useCountdown } from "../../hooks/useCountdown";
 
 // December nights are priced at the backend's FESTIVE rate. Count down to the
@@ -25,7 +25,7 @@ export default function FestiveBanner() {
   ];
 
   return (
-    <section className="festive" style={{ backgroundImage: `url(${IMAGES.promo})` }}>
+    <section className="festive" style={{ backgroundImage: `url(${backgroundFor(IMAGES.promo)})` }}>
       <div className="container festive-inner">
         <div className="festive-copy">
           <span className="eyebrow">{inSeason ? "Festive season" : "Plan ahead"}</span>

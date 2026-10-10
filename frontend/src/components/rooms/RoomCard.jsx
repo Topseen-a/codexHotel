@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { formatNaira } from "../../utils/format";
 import Icon from "../ui/Icon";
+import Photo from "../ui/Photo";
 import "./RoomCard.css";
 
 /** Compact room-type card (home page carousel and similar grids). */
@@ -10,7 +11,7 @@ export default function RoomCard({ room, search = "" }) {
   return (
     <article className="room-card">
       <Link to={href} className="room-card-image" tabIndex={-1} aria-hidden="true">
-        <img src={room.images[0]} alt="" loading="lazy" />
+        <Photo src={room.images[0]} sizes="(max-width: 760px) min(78vw, 320px), (max-width: 960px) 33vw, 280px" />
       </Link>
       <div className="room-card-body">
         <h3>

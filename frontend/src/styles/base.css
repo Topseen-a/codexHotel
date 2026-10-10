@@ -941,3 +941,13 @@ select option {
   font-size: 0.8rem;
   font-weight: 500;
 }
+
+/* Photos show a warm placeholder tone while they load. */
+img[srcset],
+.room-card-image,
+.room-row-image,
+.booking-card-image,
+.experience-card-image,
+.gallery-item {
+  background-color: var(--surface-muted);
+}

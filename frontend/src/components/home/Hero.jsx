@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { BRAND_WORDMARK, SITE } from "../../config/site";
 import { IMAGES } from "../../content/images";
+import Photo from "../ui/Photo";
 
 /** Split hero: a dark editorial panel on the left, a tall photograph on the right. */
 export default function Hero() {
@@ -56,7 +57,7 @@ export default function Hero() {
 
       <div className="hero-photo" ref={photoRef}>
         <div className="hero-photo-inner">
-          <img src={IMAGES.heroTall} alt="Warm wood-panelled suite opening onto a tropical garden" fetchPriority="high" />
+          <Photo src={IMAGES.heroTall} alt="Warm wood-panelled suite opening onto a tropical garden" sizes="(max-width: 960px) 100vw, 42vw" priority />
         </div>
       </div>
     </section>

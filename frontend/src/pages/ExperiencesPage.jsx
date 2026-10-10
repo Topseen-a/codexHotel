@@ -1,8 +1,9 @@
 import { Link } from "react-router-dom";
 import Icon from "../components/ui/Icon";
+import Photo from "../components/ui/Photo";
 import { SITE } from "../config/site";
 import { EXPERIENCES } from "../content/experiences";
-import { IMAGES } from "../content/images";
+import { backgroundFor, IMAGES } from "../content/images";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import "./InfoPages.css";
 
@@ -11,7 +12,7 @@ export default function ExperiencesPage() {
 
   return (
     <>
-      <section className="page-hero" style={{ backgroundImage: `url(${IMAGES.experiences})` }}>
+      <section className="page-hero" style={{ backgroundImage: `url(${backgroundFor(IMAGES.experiences)})` }}>
         <div className="container">
           <span className="eyebrow">Experiences</span>
           <h1>More Than a Stay</h1>
@@ -31,7 +32,7 @@ export default function ExperiencesPage() {
         {EXPERIENCES.map((experience, index) => (
           <article key={experience.slug} id={experience.slug} className={`experience-feature ${index % 2 ? "reverse" : ""}`}>
             <div className="experience-feature-photo">
-              <img src={experience.imageLarge} alt={experience.title} loading="lazy" />
+              <Photo src={experience.imageLarge} alt={experience.title} sizes="(max-width: 860px) 100vw, 55vw" />
             </div>
             <div className="experience-feature-copy">
               <span className="eyebrow">

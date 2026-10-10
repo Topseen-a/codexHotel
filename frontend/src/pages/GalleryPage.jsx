@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { IMAGES } from "../content/images";
+import { backgroundFor, IMAGES } from "../content/images";
 import { GALLERY, GALLERY_CATEGORIES } from "../content/gallery";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import Modal from "../components/ui/Modal";
+import Photo from "../components/ui/Photo";
 import "./InfoPages.css";
 
 export default function GalleryPage() {
@@ -14,7 +15,7 @@ export default function GalleryPage() {
 
   return (
     <>
-      <section className="page-hero" style={{ backgroundImage: `url(${IMAGES.gallery})` }}>
+      <section className="page-hero" style={{ backgroundImage: `url(${backgroundFor(IMAGES.gallery)})` }}>
         <div className="container">
           <span className="eyebrow">Gallery</span>
           <h1>A Look Around the Resort</h1>
@@ -47,7 +48,11 @@ export default function GalleryPage() {
               onClick={() => setOpen(photo)}
               aria-label={`Open photo: ${photo.alt}`}
             >
-              <img src={photo.src} alt={photo.alt} loading="lazy" />
+              <Photo
+                src={photo.src}
+                alt={photo.alt}
+                sizes={photo.wide ? "(max-width: 900px) 100vw, 50vw" : "(max-width: 600px) 50vw, (max-width: 900px) 33vw, 25vw"}
+              />
               <span>{photo.category}</span>
             </button>
           ))}

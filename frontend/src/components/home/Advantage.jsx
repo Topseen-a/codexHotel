@@ -2,6 +2,7 @@ import { SITE } from "../../config/site";
 import { ADVANTAGES } from "../../content/experiences";
 import { IMAGES } from "../../content/images";
 import Icon from "../ui/Icon";
+import Photo from "../ui/Photo";
 import Testimonials from "./Testimonials";
 
 export default function Advantage() {
@@ -30,7 +31,7 @@ export default function Advantage() {
         </div>
 
         <div className="advantage-photo">
-          <img src={IMAGES.advantage} alt="Infinity pool deck overlooking the sea" loading="lazy" />
+          <Photo src={IMAGES.advantage} alt="Infinity pool deck overlooking the sea" sizes="(max-width: 760px) 100vw, (max-width: 1080px) 50vw, 32vw" />
           <p className="script" aria-hidden="true">
             Where comfort
             <br />
