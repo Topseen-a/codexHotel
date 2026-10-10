@@ -12,7 +12,10 @@ export default function Hero() {
   useEffect(() => {
     const photo = photoRef.current;
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (!photo || reducedMotion) return undefined;
+    // Desktop only: on phones/tablets the photo is stacked under the text, and
+    // moving it while the page scrolls makes it look like it lags behind.
+    const sideBySide = window.matchMedia("(min-width: 961px) and (hover: hover)").matches;
+    if (!photo || reducedMotion || !sideBySide) return undefined;
 
     let frame = 0;
     const update = () => {

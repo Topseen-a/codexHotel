@@ -951,3 +951,11 @@ img[srcset],
 .gallery-item {
   background-color: var(--surface-muted);
 }
+
+/* Phones: a shorter, subtler reveal so content keeps pace with the finger. */
+@media (max-width: 760px) {
+  .reveal-ready [data-reveal] {
+    transform: translateY(12px);
+    transition-duration: 0.45s;
+  }
+}

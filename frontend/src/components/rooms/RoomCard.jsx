@@ -5,13 +5,17 @@ import Photo from "../ui/Photo";
 import "./RoomCard.css";
 
 /** Compact room-type card (home page carousel and similar grids). */
-export default function RoomCard({ room, search = "" }) {
+export default function RoomCard({ room, search = "", priority = false }) {
   const href = `/rooms/${room.type}${search}`;
 
   return (
     <article className="room-card">
       <Link to={href} className="room-card-image" tabIndex={-1} aria-hidden="true">
-        <Photo src={room.images[0]} sizes="(max-width: 760px) min(78vw, 320px), (max-width: 960px) 33vw, 280px" />
+        <Photo
+          src={room.images[0]}
+          sizes="(max-width: 760px) min(78vw, 320px), (max-width: 960px) 33vw, 280px"
+          priority={priority}
+        />
       </Link>
       <div className="room-card-body">
         <h3>
@@ -27,7 +31,9 @@ export default function RoomCard({ room, search = "" }) {
         </div>
         <div className="room-card-footer">
           <p className="room-card-price">
-            {room.fromPrice != null ? (
+            {room.priceLoading ? (
+              <span className="skeleton room-card-price-skeleton" aria-label="Loading price" />
+            ) : room.fromPrice != null ? (
               <>
                 <strong>{formatNaira(room.fromPrice)}</strong> <span>/ night</span>
               </>
@@ -41,18 +47,5 @@ export default function RoomCard({ room, search = "" }) {
         </div>
       </div>
     </article>
-  );
-}
-
-export function RoomCardSkeleton() {
-  return (
-    <div className="room-card" aria-hidden="true">
-      <div className="skeleton room-card-image" />
-      <div className="room-card-body">
-        <div className="skeleton" style={{ height: 18, width: "70%" }} />
-        <div className="skeleton" style={{ height: 13, width: "85%" }} />
-        <div className="skeleton" style={{ height: 30, marginTop: 8 }} />
-      </div>
-    </div>
   );
 }

@@ -35,8 +35,11 @@ export default function RoomsPage() {
   };
 
   const summaries = summarizeRoomTypes(rooms.data || []);
-  const suitable = summaries.filter((room) => room.guests >= guests);
-  const hiddenCount = summaries.length - suitable.length;
+  // Show the room types straight away (photos and copy are static) so images
+  // start loading immediately; live availability and prices fill in after.
+  const listed = rooms.loading ? ROOM_TYPES.map((type) => ({ type, ...roomContent(type), loading: true })) : summaries;
+  const suitable = listed.filter((room) => room.guests >= guests);
+  const hiddenCount = listed.length - suitable.length;
   const query = searchParams.toString() ? `?${searchParams}` : "";
 
   return (
@@ -97,28 +100,16 @@ export default function RoomsPage() {
         {rooms.error && <Alert tone="danger">{rooms.error.message}</Alert>}
 
         <div className="room-list">
-          {rooms.loading &&
-            ROOM_TYPES.map((type) => (
-              <div key={type} className="room-row card" aria-hidden="true">
-                <div className="skeleton room-row-image" />
-                <div className="room-row-body stack">
-                  <div className="skeleton" style={{ height: 26, width: "45%" }} />
-                  <div className="skeleton" style={{ height: 14, width: "90%" }} />
-                  <div className="skeleton" style={{ height: 14, width: "70%" }} />
-                </div>
-              </div>
-            ))}
-
           {!rooms.loading && !rooms.error && summaries.length === 0 && (
             <EmptyState icon="bed" title="No rooms configured yet">
               Check back shortly — our team is setting up room inventory.
             </EmptyState>
           )}
 
-          {suitable.map((room) => (
+          {suitable.map((room, index) => (
             <article key={room.type} className="room-row card">
               <Link to={`/rooms/${room.type}${query}`} className="room-row-image" tabIndex={-1} aria-hidden="true">
-                <Photo src={room.images[0]} sizes="(max-width: 860px) 100vw, 42vw" />
+                <Photo src={room.images[0]} sizes="(max-width: 860px) 100vw, 42vw" priority={index === 0} />
               </Link>
               <div className="room-row-body">
                 <div className="room-row-head">
@@ -128,7 +119,9 @@ export default function RoomsPage() {
                     </h2>
                     <p className="muted">{room.tagline}</p>
                   </div>
-                  {room.availableNow > 0 ? (
+                  {room.loading ? (
+                    <span className="skeleton" style={{ width: 120, height: 22, borderRadius: 999 }} aria-hidden="true" />
+                  ) : room.availableNow > 0 ? (
                     <span className="badge badge-success">{pluralize(room.availableNow, "room")} free tonight</span>
                   ) : room.bookableRooms > 0 ? (
                     <span className="badge badge-info">Book for future dates</span>
@@ -161,10 +154,14 @@ export default function RoomsPage() {
                 </ul>
 
                 <div className="room-row-footer">
-                  <p>
-                    <span className="faint">From</span> <strong>{formatNaira(room.fromPrice)}</strong>{" "}
-                    <span className="faint">/ night</span>
-                  </p>
+                  {room.loading ? (
+                    <span className="skeleton" style={{ width: 150, height: 26 }} aria-label="Loading price" />
+                  ) : (
+                    <p>
+                      <span className="faint">From</span> <strong>{formatNaira(room.fromPrice)}</strong>{" "}
+                      <span className="faint">/ night</span>
+                    </p>
+                  )}
                   <Link to={`/rooms/${room.type}${query}`} className="btn btn-primary">
                     View &amp; Book <Icon name="arrowRight" size={16} />
                   </Link>

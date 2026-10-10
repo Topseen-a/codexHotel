@@ -76,3 +76,10 @@
   font-size: 1.05rem;
   color: var(--ink);
 }
+
+.room-card-price-skeleton {
+  display: inline-block;
+  width: 110px;
+  height: 18px;
+  vertical-align: middle;
+}
